@@ -31,7 +31,7 @@ app = App(
 def handle_app_mention(event, say, logger):
     """
     Respond when the bot is mentioned in a channel.
-    
+
     Args:
         event: The event data from Slack
         say: Function to send a message to the channel
@@ -39,9 +39,9 @@ def handle_app_mention(event, say, logger):
     """
     user = event.get("user")
     text = event.get("text", "")
-    
+
     logger.info(f"App mentioned by user {user}: {text}")
-    
+
     say(
         text=f"Hello <@{user}>! You mentioned me. How can I help you today?",
         thread_ts=event.get("ts")  # Reply in thread
@@ -52,7 +52,7 @@ def handle_app_mention(event, say, logger):
 def handle_message_events(event, logger):
     """
     Handle message events (logged but not responded to automatically).
-    
+
     Args:
         event: The event data from Slack
         logger: Logger instance
@@ -60,7 +60,7 @@ def handle_message_events(event, logger):
     # Avoid responding to bot messages or messages without text
     if event.get("subtype") == "bot_message" or "text" not in event:
         return
-    
+
     logger.info(f"Message event: {event}")
 
     # Add CV entry to database
@@ -86,7 +86,7 @@ def handle_message_events(event, logger):
 def handle_hello_command(ack, command, say, logger):
     """
     Handle the /hello slash command.
-    
+
     Args:
         ack: Function to acknowledge the command
         command: The command data from Slack
@@ -94,10 +94,10 @@ def handle_hello_command(ack, command, say, logger):
         logger: Logger instance
     """
     ack()  # Acknowledge the command request
-    
+
     user_id = command.get("user_id")
     logger.info(f"/hello command received from user {user_id}")
-    
+
     say(f"Hello <@{user_id}>! 👋 This is a sample slash command response.")
 
 
@@ -109,7 +109,7 @@ def handle_hello_command(ack, command, say, logger):
 def handle_button_click(ack, body, say, logger):
     """
     Handle button click interactions.
-    
+
     Args:
         ack: Function to acknowledge the action
         body: The interaction payload
@@ -117,10 +117,10 @@ def handle_button_click(ack, body, say, logger):
         logger: Logger instance
     """
     ack()  # Acknowledge the action
-    
+
     user = body["user"]["id"]
     logger.info(f"Button clicked by user {user}")
-    
+
     say(f"<@{user}> clicked the button! 🎉")
 
 
@@ -128,14 +128,14 @@ def handle_button_click(ack, body, say, logger):
 def handle_demo_button_command(ack, command, say):
     """
     Demo command that shows an interactive button.
-    
+
     Args:
         ack: Function to acknowledge the command
         command: The command data
         say: Function to send a message with blocks
     """
     ack()
-    
+
     say(
         blocks=[
             {
@@ -167,89 +167,6 @@ def handle_cv_command(ack, command, say, logger):
     ack()
     logger.info(command)
 
-@app.shortcut("sample_shortcut")
-def handle_shortcut(ack, shortcut, client, logger):
-    """
-    Handle global shortcuts.
-    
-    Args:
-        ack: Function to acknowledge the shortcut
-        shortcut: The shortcut data
-        client: Slack Web API client
-        logger: Logger instance
-    """
-    ack()
-    
-    logger.info(f"Shortcut triggered by user {shortcut['user']['id']}")
-    
-    # Open a modal
-    client.views_open(
-        trigger_id=shortcut["trigger_id"],
-        view={
-            "type": "modal",
-            "callback_id": "sample_modal",
-            "title": {
-                "type": "plain_text",
-                "text": "Sample Modal"
-            },
-            "submit": {
-                "type": "plain_text",
-                "text": "Submit"
-            },
-            "close": {
-                "type": "plain_text",
-                "text": "Cancel"
-            },
-            "blocks": [
-                {
-                    "type": "input",
-                    "block_id": "input_block",
-                    "element": {
-                        "type": "plain_text_input",
-                        "action_id": "input_action",
-                        "placeholder": {
-                            "type": "plain_text",
-                            "text": "Enter some text"
-                        }
-                    },
-                    "label": {
-                        "type": "plain_text",
-                        "text": "Your Input"
-                    }
-                }
-            ]
-        }
-    )
-
-
-@app.view("sample_modal")
-def handle_modal_submission(ack, body, client, view, logger):
-    """
-    Handle modal form submissions.
-    
-    Args:
-        ack: Function to acknowledge the submission
-        body: The submission payload
-        client: Slack Web API client
-        view: The view data
-        logger: Logger instance
-    """
-    ack()
-    
-    user_id = body["user"]["id"]
-    
-    # Extract the input value
-    input_value = view["state"]["values"]["input_block"]["input_action"]["value"]
-    
-    logger.info(f"Modal submitted by user {user_id} with value: {input_value}")
-    
-    # Send a confirmation message
-    client.chat_postMessage(
-        channel=user_id,
-        text=f"Thanks for your submission! You entered: {input_value}"
-    )
-
-
 # ============================================================================
 # Home Tab
 # ============================================================================
@@ -258,7 +175,7 @@ def handle_modal_submission(ack, body, client, view, logger):
 def update_home_tab(client, event, logger):
     """
     Update the App Home tab when a user opens it.
-    
+
     Args:
         client: Slack Web API client
         event: The event data
@@ -266,7 +183,7 @@ def update_home_tab(client, event, logger):
     """
     try:
         user_id = event["user"]
-        
+
         client.views_publish(
             user_id=user_id,
             view={
