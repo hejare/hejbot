@@ -164,8 +164,26 @@ def handle_demo_button_command(ack, command, say):
 
 @app.command("/cv")
 def handle_cv_command(ack, command, say, logger):
-    ack()
-    logger.info(command)
+    if not command.get("text"):
+        ack("Please provide a query text. Usage: /cv <your text>")
+        return
+    text = command.get("text")
+    if text.lower() == "generate":
+        ack()
+        logger.info("Generating CV...")
+        user_id = command.get("user_id")
+        entries = query("SELECT user_id,text,timestamp FROM cv_entries WHERE user_id=?", (user_id,))
+        say(
+            text=f"These are all your CV entries\n" + "\n".join([f" {entry[1]} at {entry[2]}" for entry in entries]),
+        )
+
+def query(query, parameters):
+    con = sqlite3.connect("hejbot.db")
+    cur = con.cursor()
+    results = cur.execute(query, parameters).fetchall()
+    con.commit()
+    con.close()
+    return results
 
 # ============================================================================
 # Home Tab
