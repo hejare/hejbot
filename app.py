@@ -66,14 +66,9 @@ def handle_message_events(event, logger):
     # Add CV entry to database
     user_id = event.get('user')
     text = event.get('text')
-    con = sqlite3.connect("hejbot.db")
-    cur = con.cursor()
-    cur.execute("INSERT INTO cv_entries (user_id,text,timestamp) VALUES (?,?,?)",
+    cv_entries = query("INSERT INTO cv_entries (user_id,text,timestamp) VALUES (?,?,?)",
         (user_id, text, datetime.now())
     )
-    cv_entries = cur.execute("SELECT user_id,text,timestamp FROM cv_entries").fetchall()
-    con.commit()
-    con.close()
 
     logger.info(cv_entries)
 
