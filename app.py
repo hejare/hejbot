@@ -66,12 +66,14 @@ def handle_message_events(event, logger):
     # Add CV entry to database
     user_id = event.get('user')
     text = event.get('text')
-    dbconnection = sqlite3.connect("hejbot.db")
-    dbconnection.execute("INSERT INTO cv_entries (user_id,text,timestamp) VALUES (?,?,?)",
+    con = sqlite3.connect("hejbot.db")
+    cur = con.cursor()
+    cur.execute("INSERT INTO cv_entries (user_id,text,timestamp) VALUES (?,?,?)",
         (user_id, text, datetime.now())
     )
-    cv_entries = dbconnection.execute("SELECT user_id,text,timestamp FROM cv_entries").fetchall()
-    dbconnection.close()
+    cv_entries = cur.execute("SELECT user_id,text,timestamp FROM cv_entries").fetchall()
+    con.commit()
+    con.close()
 
     logger.info(cv_entries)
 
@@ -301,9 +303,11 @@ def update_home_tab(client, event, logger):
         logger.error(f"Error updating home tab: {e}")
 
 def setup_db():
-    dbconnection = sqlite3.connect("hejbot.db")
-    dbconnection.execute("CREATE TABLE IF NOT EXISTS cv_entries(user_id,text,timestamp)")
-    dbconnection.close()
+    con = sqlite3.connect("hejbot.db")
+    cur = con.cursor()
+    cur.execute("CREATE TABLE IF NOT EXISTS cv_entries(user_id,text,timestamp)")
+    con.commit()
+    con.close()
 
 # ============================================================================
 # Application Entry Point
