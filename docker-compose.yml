@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  hejbot:
+    build: .
+    container_name: hejbot
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      # Mount the current directory for development
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Override command for development with auto-reload (optional)
+    # command: python app.py

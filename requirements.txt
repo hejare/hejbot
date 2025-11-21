@@ -1,0 +1,8 @@
+# Slack Bolt framework - official framework for building Slack apps with Python
+slack-bolt>=1.18.0
+
+# Python dotenv for environment variable management
+python-dotenv>=1.0.0
+
+# Optional: For async support (uncomment if needed)
+# aiohttp>=3.9.0
