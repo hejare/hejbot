@@ -3,7 +3,9 @@ Hejbot - A Python Slack App Boilerplate
 Built with Slack Bolt framework for Python
 """
 
+from datetime import datetime
 import logging
+import sqlite3
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from config import Config
@@ -20,7 +22,6 @@ app = App(
     token=Config.SLACK_BOT_TOKEN,
     signing_secret=Config.SLACK_SIGNING_SECRET
 )
-
 
 # ============================================================================
 # Event Listeners
@@ -60,7 +61,19 @@ def handle_message_events(event, logger):
     if event.get("subtype") == "bot_message" or "text" not in event:
         return
     
-    logger.debug(f"Message event: {event.get('text')}")
+    logger.info(f"Message event: {event}")
+
+    # Add CV entry to database
+    user_id = event.get('user')
+    text = event.get('text')
+    dbconnection = sqlite3.connect("hejbot.db")
+    dbconnection.execute("INSERT INTO cv_entries (user_id,text,timestamp) VALUES (?,?,?)",
+        (user_id, text, datetime.now())
+    )
+    cv_entries = dbconnection.execute("SELECT user_id,text,timestamp FROM cv_entries").fetchall()
+    dbconnection.close()
+
+    logger.info(cv_entries)
 
 
 # ============================================================================
@@ -147,6 +160,10 @@ def handle_demo_button_command(ack, command, say):
         ]
     )
 
+@app.command("/cv")
+def handle_cv_command(ack, command, say, logger):
+    ack()
+    logger.info(command)
 
 @app.shortcut("sample_shortcut")
 def handle_shortcut(ack, shortcut, client, logger):
@@ -283,6 +300,10 @@ def update_home_tab(client, event, logger):
     except Exception as e:
         logger.error(f"Error updating home tab: {e}")
 
+def setup_db():
+    dbconnection = sqlite3.connect("hejbot.db")
+    dbconnection.execute("CREATE TABLE IF NOT EXISTS cv_entries(user_id,text,timestamp)")
+    dbconnection.close()
 
 # ============================================================================
 # Application Entry Point
@@ -291,6 +312,8 @@ def update_home_tab(client, event, logger):
 def main():
     """Start the Slack bot application."""
     try:
+        setup_db()
+
         if Config.SOCKET_MODE:
             # Socket Mode - recommended for local development
             logger.info("Starting Hejbot in Socket Mode...")
