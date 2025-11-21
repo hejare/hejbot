@@ -7,5 +7,5 @@ python-dotenv>=1.0.0
 # Optional: For async support (uncomment if needed)
 # aiohttp>=3.9.0
 
-# Sqlite3
-sqlite3
+# OpenAI
+openai

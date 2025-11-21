@@ -9,23 +9,24 @@ import sqlite3
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from config import Config
+from openai import OpenAI
+
+client = OpenAI(api_key=Config.OPEN_AI_KEY)
 
 # Configure logging
 logging.basicConfig(
     level=getattr(logging, Config.LOG_LEVEL),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
 # Initialize the Slack app
-app = App(
-    token=Config.SLACK_BOT_TOKEN,
-    signing_secret=Config.SLACK_SIGNING_SECRET
-)
+app = App(token=Config.SLACK_BOT_TOKEN, signing_secret=Config.SLACK_SIGNING_SECRET)
 
 # ============================================================================
 # Event Listeners
 # ============================================================================
+
 
 @app.event("app_mention")
 def handle_app_mention(event, say, logger):
@@ -44,7 +45,7 @@ def handle_app_mention(event, say, logger):
 
     say(
         text=f"Hello <@{user}>! You mentioned me. How can I help you today?",
-        thread_ts=event.get("ts")  # Reply in thread
+        thread_ts=event.get("ts"),  # Reply in thread
     )
 
 
@@ -64,10 +65,11 @@ def handle_message_events(event, logger):
     logger.info(f"Message event: {event}")
 
     # Add CV entry to database
-    user_id = event.get('user')
-    text = event.get('text')
-    cv_entries = query("INSERT INTO cv_entries (user_id,text,timestamp) VALUES (?,?,?)",
-        (user_id, text, datetime.now())
+    user_id = event.get("user")
+    text = event.get("text")
+    cv_entries = query(
+        "INSERT INTO cv_entries (user_id,text,timestamp) VALUES (?,?,?)",
+        (user_id, text, datetime.now()),
     )
 
     logger.info(cv_entries)
@@ -76,6 +78,7 @@ def handle_message_events(event, logger):
 # ============================================================================
 # Slash Commands
 # ============================================================================
+
 
 @app.command("/hello")
 def handle_hello_command(ack, command, say, logger):
@@ -99,6 +102,7 @@ def handle_hello_command(ack, command, say, logger):
 # ============================================================================
 # Interactive Components (Buttons, Modals, etc.)
 # ============================================================================
+
 
 @app.action("button_click")
 def handle_button_click(ack, body, say, logger):
@@ -137,25 +141,23 @@ def handle_demo_button_command(ack, command, say):
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Click the button below to see an interactive response!"
-                }
+                    "text": "Click the button below to see an interactive response!",
+                },
             },
             {
                 "type": "actions",
                 "elements": [
                     {
                         "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Click Me"
-                        },
+                        "text": {"type": "plain_text", "text": "Click Me"},
                         "action_id": "button_click",
-                        "style": "primary"
+                        "style": "primary",
                     }
-                ]
-            }
+                ],
+            },
         ]
     )
+
 
 @app.command("/cv")
 def handle_cv_command(ack, command, say, logger):
@@ -163,26 +165,46 @@ def handle_cv_command(ack, command, say, logger):
         ack("Please provide a query text. Usage: /cv <your text>")
         return
     text = command.get("text")
-    if text.lower() == "generate":
-        ack()
-        logger.info("Generating CV...")
-        user_id = command.get("user_id")
-        entries = query("SELECT user_id,text,timestamp FROM cv_entries WHERE user_id=?", (user_id,))
-        say(
-            text=f"These are all your CV entries\n" + "\n".join([f" {entry[1]} at {entry[2]}" for entry in entries]),
-        )
+    user_id = command.get("user_id")
 
-def query(query, parameters):
+    if text.lower() == "generate":
+        ack("Genererar din CV post...")
+        logger.info("Generating CV...")
+        entries = query(
+            "SELECT user_id,text,timestamp FROM cv_entries WHERE user_id=?",
+            (user_id,),
+            fetch=True,
+        )
+        input = f"Create a CV post based on the following entries: \n\n {"\n-----------\n".join([f"Text: {entry[1]} \n Timestamp: {entry[2]}" for entry in entries])}"
+        response = client.responses.create(
+            model="gpt-5-nano",
+            input=input,
+            instructions="You are a senior salesperson at a consultancy company. Write in past tense, in third person. You will receive CV notes with timestamps",
+        )
+        say(text=response.output_text)
+
+    if text.lower() == "delete":
+        ack("Raderar dina CV poster")
+        query("DELETE FROM cv_entries WHERE user_id=?", (user_id,))
+        logger.info(f"Deleted entries for{user_id} ")
+
+
+def query(query, parameters, fetch=False):
     con = sqlite3.connect("hejbot.db")
     cur = con.cursor()
-    results = cur.execute(query, parameters).fetchall()
+    if fetch:
+        results = cur.execute(query, parameters).fetchall()
+    else:
+        results = cur.execute(query, parameters)
     con.commit()
     con.close()
     return results
 
+
 # ============================================================================
 # Home Tab
 # ============================================================================
+
 
 @app.event("app_home_opened")
 def update_home_tab(client, event, logger):
@@ -204,33 +226,29 @@ def update_home_tab(client, event, logger):
                 "blocks": [
                     {
                         "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "*Welcome to Hejbot! 👋*"
-                        }
+                        "text": {"type": "mrkdwn", "text": "*Welcome to Hejbot! 👋*"},
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "This is your App Home. You can customize this view to show useful information."
-                        }
+                            "text": "This is your App Home. You can customize this view to show useful information.",
+                        },
                     },
-                    {
-                        "type": "divider"
-                    },
+                    {"type": "divider"},
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Available Commands:*\n• `/hello` - Get a greeting\n• `/demo-button` - See an interactive button demo"
-                        }
-                    }
-                ]
-            }
+                            "text": "*Available Commands:*\n• `/hello` - Get a greeting\n• `/demo-button` - See an interactive button demo",
+                        },
+                    },
+                ],
+            },
         )
     except Exception as e:
         logger.error(f"Error updating home tab: {e}")
+
 
 def setup_db():
     con = sqlite3.connect("hejbot.db")
@@ -239,9 +257,11 @@ def setup_db():
     con.commit()
     con.close()
 
+
 # ============================================================================
 # Application Entry Point
 # ============================================================================
+
 
 def main():
     """Start the Slack bot application."""
