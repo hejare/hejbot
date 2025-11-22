@@ -7,6 +7,10 @@ from datetime import datetime
 import logging
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from multiprocessing import Process
+import sqlite3
+import time
+import schedule
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from config import Config
@@ -287,26 +291,42 @@ def setup_db():
     finally:
         conn.close()
 
+def test_job():
+    logger.info("Job triggered after 10 seconds")
+    # Run job
+    return schedule.CancelJob
+
+def schedule_process():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+def setup_scheduler():
+    schedule.every(10).seconds.do(test_job)
+
+    p = Process(target=schedule_process)
+    p.start()
 
 # ============================================================================
 # Application Entry Point
 # ============================================================================
-
 
 def main():
     """Start the Slack bot application."""
     try:
         setup_db()
 
-        if Config.SOCKET_MODE:
-            # Socket Mode - recommended for local development
-            logger.info("Starting Hejbot in Socket Mode...")
-            handler = SocketModeHandler(app, Config.SLACK_APP_TOKEN)
-            handler.start()
-        else:
-            # HTTP Mode - for production deployment
-            logger.info(f"Starting Hejbot in HTTP Mode on port {Config.PORT}...")
-            app.start(port=Config.PORT)
+        setup_scheduler()
+
+        # if Config.SOCKET_MODE:
+        #     # Socket Mode - recommended for local development
+        #     logger.info("Starting Hejbot in Socket Mode...")
+        #     handler = SocketModeHandler(app, Config.SLACK_APP_TOKEN)
+        #     handler.start()
+        # else:
+        #     # HTTP Mode - for production deployment
+        #     logger.info(f"Starting Hejbot in HTTP Mode on port {Config.PORT}...")
+        #     app.start(port=Config.PORT)
     except Exception as e:
         logger.error(f"Error starting application: {e}")
         raise
