@@ -15,3 +15,7 @@ openai
 
 # Schedule https://schedule.readthedocs.io/en/stable/index.html
 schedule
+
+# Google
+google-api-python-client
+oauth2client

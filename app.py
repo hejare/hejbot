@@ -5,13 +5,13 @@ Built with Slack Bolt framework for Python
 
 from datetime import datetime
 import logging
-from multiprocessing import Process
 import sqlite3
-import time
-import schedule
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from openai import OpenAI
+
+from scheduler import Scheduler
+from google_api import GoogleApi
 
 from config import Config
 from db import setup_db, query
@@ -221,6 +221,39 @@ def handle_cv_command(ack, command, say, logger):
         logger.info(f"Deleted entries for{user_id} ")
 
 
+def query(query, parameters, fetch=False):
+    con = sqlite3.connect("hejbot.db")
+    cur = con.cursor()
+    if fetch:
+        results = cur.execute(query, parameters).fetchall()
+    else:
+        results = cur.execute(query, parameters)
+    con.commit()
+    con.close()
+    return results
+
+def get_db_connection():
+    """Get a PostgreSQL database connection."""
+    return psycopg2.connect(
+        host=Config.DB_HOST,
+        port=Config.DB_PORT,
+        database=Config.DB_DATABASE,
+        user=Config.DB_USERNAME,
+        password=Config.DB_PASSWORD,
+        sslmode=Config.DB_SSL_MODE
+    )
+
+def query(query_text, parameters):
+    """Execute a database query and return results."""
+    with get_db_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(query_text, parameters)
+            if query_text.strip().upper().startswith("SELECT"):
+                return cur.fetchall()
+            else:
+                return None
+
+
 # ============================================================================
 # Home Tab
 # ============================================================================
@@ -270,25 +303,6 @@ def update_home_tab(client, event, logger):
         logger.error(f"Error updating home tab: {e}")
 
 
-def test_job():
-    logger.info("Job triggered after 10 seconds")
-    # Run job
-    return schedule.CancelJob
-
-
-def schedule_process():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
-
-def setup_scheduler():
-    schedule.every(10).seconds.do(test_job)
-
-    p = Process(target=schedule_process)
-    p.start()
-
-
 # ============================================================================
 # Application Entry Point
 # ============================================================================
@@ -299,7 +313,12 @@ def main():
     try:
         setup_db()
 
-        setup_scheduler()
+        scheduler = Scheduler(logger)
+        scheduler.start()
+
+        # google_api = GoogleApi(logger)
+        # events = google_api.get_events()
+        # logger.info(events)
 
         if Config.SOCKET_MODE:
             # Socket Mode - recommended for local development
