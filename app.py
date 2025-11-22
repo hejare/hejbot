@@ -14,7 +14,7 @@ from scheduler import Scheduler
 from google_api import GoogleApi
 
 from config import Config
-from db import setup_db, query
+from db import setup_db, query, get_db_connection
 
 client = OpenAI(api_key=Config.OPEN_AI_KEY)
 
@@ -219,39 +219,6 @@ def handle_cv_command(ack, command, say, logger):
         ack("Raderar dina CV poster")
         query("DELETE FROM cv_entries WHERE user_id=%s", (user_id,))
         logger.info(f"Deleted entries for{user_id} ")
-
-
-def query(query, parameters, fetch=False):
-    con = sqlite3.connect("hejbot.db")
-    cur = con.cursor()
-    if fetch:
-        results = cur.execute(query, parameters).fetchall()
-    else:
-        results = cur.execute(query, parameters)
-    con.commit()
-    con.close()
-    return results
-
-def get_db_connection():
-    """Get a PostgreSQL database connection."""
-    return psycopg2.connect(
-        host=Config.DB_HOST,
-        port=Config.DB_PORT,
-        database=Config.DB_DATABASE,
-        user=Config.DB_USERNAME,
-        password=Config.DB_PASSWORD,
-        sslmode=Config.DB_SSL_MODE
-    )
-
-def query(query_text, parameters):
-    """Execute a database query and return results."""
-    with get_db_connection() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute(query_text, parameters)
-            if query_text.strip().upper().startswith("SELECT"):
-                return cur.fetchall()
-            else:
-                return None
 
 
 # ============================================================================
