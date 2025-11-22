@@ -173,7 +173,8 @@ def handle_cv_command(ack, command, say, logger):
             (user_id,),
             fetch=True,
         )
-        input = f"Create a CV post based on the following entries: \n\n {"\n-----------\n".join([f'Text: {entry["text"]} \n Timestamp: {entry["timestamp"]}' for entry in entries])}"
+        entries_input = "\n-----------\n".join([f'Text: {entry["text"]} \n Timestamp: {entry["timestamp"]}' for entry in entries])
+        input = f"Create a CV post based on the following entries: \n\n {entries_input}"
         response = client.responses.create(
             model="gpt-5-nano",
             input=input,
