@@ -188,22 +188,28 @@ def handle_cv_command(ack, command, say, logger):
             ]
         )
 
+        with open("cv_example.txt", "r") as f:
+            cv_example = f.read()
+
         input = (
             f"Create a CV post for {first_name} based on the following entries:\n\n"
             f"{entries_text}"
         )
         instructions = (
-            "You are a senior consultant profile writer at a tech consulting company. "
-            "Your task is to generate a high-quality CV assignment description based on short notes collected from internal updates (Slack messages, meeting notes, project logs, etc.). "
-            "Guidelines: Write in past tense and in third person (he/she/they). "
-            "The text must read as a coherent narrative, not bullet points. "
-            "Tone: professional, factual, while emphasizing impact, collaboration and problem-solving. "
-            "Do not invent details, but you may logically combine and interpret provided notes to form a cohesive story. "
-            "Highlight the consultant’s role, client context, challenges, contributions, collaboration, and results — even if only partially implied. "
-            "Do not include dates or timestamps. Max 10 lines of text. "
-            "Include: Who the client is (describe based on context, e.g., “a leading streaming provider” or “a major public service media company”), the consultant’s role and responsibilities, the client’s challenges and what needed improvement, actions taken including both technical and collaborative contributions, and outcomes and impact (quality improvements, new features, better processes, increased engagement, smoother releases, etc.). "
-            "Write in a style similar to a modern consulting CV, concise but substantial, flowing naturally."
+            "You are a senior consultant profile writer at a tech consulting company.\n"
+            "Your task is to generate a high-quality CV assignment description based on short notes collected from internal updates (Slack messages, meeting notes, project logs, etc.).\n"
+            "Guidelines: Write in past tense and in third person (he/she/they).\n"
+            "The text must read as a coherent narrative, not bullet points.\n"
+            "Tone: professional, factual, while emphasizing impact, collaboration and problem-solving.\n"
+            "Do not invent details, but you may logically combine and interpret provided notes to form a cohesive story.\n"
+            "Highlight the consultant’s role, client context, challenges, contributions, collaboration, and results — even if only partially implied.\n"
+            "Do not include dates or timestamps. Max 10 lines of text.\n"
+            "Include: Who the client is (describe based on context, e.g., “a leading streaming provider” or “a major public service media company”), the consultant’s role and responsibilities, the client’s challenges and what needed improvement, actions taken including both technical and collaborative contributions, and outcomes and impact (quality improvements, new features, better processes, increased engagement, smoother releases, etc.).\n"
+            "Write in a style similar to a modern consulting CV, concise but substantial, flowing naturally.\n"
+            "Write in the same format and style as the following CV examples:\n\n"
+            f"{cv_example}"
         )
+
         response = client.responses.create(
             model="gpt-5-nano", input=input, instructions=instructions
         )
