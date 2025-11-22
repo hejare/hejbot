@@ -5,6 +5,10 @@ Built with Slack Bolt framework for Python
 
 from datetime import datetime
 import logging
+from multiprocessing import Process
+import sqlite3
+import time
+import schedule
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from openai import OpenAI
@@ -255,6 +259,25 @@ def update_home_tab(client, event, logger):
         logger.error(f"Error updating home tab: {e}")
 
 
+def test_job():
+    logger.info("Job triggered after 10 seconds")
+    # Run job
+    return schedule.CancelJob
+
+
+def schedule_process():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+def setup_scheduler():
+    schedule.every(10).seconds.do(test_job)
+
+    p = Process(target=schedule_process)
+    p.start()
+
+
 # ============================================================================
 # Application Entry Point
 # ============================================================================
@@ -264,6 +287,8 @@ def main():
     """Start the Slack bot application."""
     try:
         setup_db()
+
+        setup_scheduler()
 
         if Config.SOCKET_MODE:
             # Socket Mode - recommended for local development

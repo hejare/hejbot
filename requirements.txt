@@ -12,3 +12,6 @@ psycopg2-binary>=2.9.9
 
 # OpenAI
 openai
+
+# Schedule https://schedule.readthedocs.io/en/stable/index.html
+schedule
