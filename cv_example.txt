@@ -1,0 +1,48 @@
+Role: Mentor - Manager
+Company: Consultant Company
+Time period: Q1 2018 – Q4 2021
+Keywords: Mentoring, Management, Talent Development, Salary Review Process, Leadership, Feedback Culture, Employee Responsibility
+At Netlight, one of the largest IT consultancy firms in the Nordics, Carl-Oscar served as a mentor - a role comparable to a manager - for nearly four years. He held direct responsibility for six consultants, supporting their development through coaching and regular feedback cycles, while also driving the salary adjustment process twice a year. Under his mentorship, several consultants earned promotions, reflecting both their growth and his ability to guide talent effectively.
+This leadership role was carried out alongside his client-facing consultant assignments, demonstrating his ability to balance delivery responsibilities with people management and organizational impact.
+---
+Role: Introduced "Bubble" Organizational Structure to Scale Participation and Culture
+Company: Hejare
+Time period: Q1 2024 – Q2 2024
+Keywords: Organizational Design, Change Management, Distributed Leadership, Workshop Design, Teal Practices, Scaling Organizations, Continious Improvement, Team Facilitation
+At Hejare, a growing consultancy with a flat structure, Carl-Oscar introduced a new organizational model to strengthen engagement and decision-making as the company expanded. Observing that the monthly all-hands meetings had become less impactful and that only a fraction of voices were heard, he designed and implemented “bubbles” — small groups of 7–9 people, inspired by Teal and anti-fragile organizational principles.
+Carl-Oscar formed the groups, set clear expectations, created workshop material, and facilitated the initial rollout. He also checked in with the bubbles to gather feedback and continuously refine the model. The approach proved highly successful, with more than 90% of employees preferring the new structure.
+Strategically, the bubble model enabled Hejare to scale while maintaining the sense of a smaller, connected company where everyone could contribute ideas, check in on each other’s well-being, and feel empowered to drive change. This reorganization increased work satisfaction, deepened consultants’ sense of impact, and built a more resilient culture.
+---
+Role: Introduced Coaching Culture at Hejare
+Company: Hejare
+Time period: Q1 2025 – Q3 2025
+Keywords: Organizational Change, Leadership Development, Coaching, Mentorship, Culture Buliding, Continuous Improvement
+Carl-Oscar initiated and led the introduction of coaching at Hejare to strengthen consultant delivery, foster personal and professional growth, and cultivate future leadership. He drove the organizational change by organizing introduction sessions and community-building activities, while personally coaching consultants to become coaches themselves. This initiative embedded coaching into the company’s culture and created a sustainable foundation for continuous development.
+---
+Role: Led Interview Standardization & Onboarding Initiative
+Company: Hejare
+Time period: Q2 2025 – Q3 2025
+Keywords: Technical interviews, Teaching, Mentoring, Onboarding, Organizing
+Carl-Oscar kicked off and led an initiative to standardize technical interviews at Hejare, ensuring a consistent and high-quality candidate experience. He designed and facilitated an introductory training session and coached new consultants to take on interviewing responsibilities with confidence. By combining planning, facilitation, and mentorship, he scaled the company’s interviewing capacity and strengthened its recruitment process.
+---
+Role: DevOps engineer
+Company: Paradox Interactive
+Time period: Q4 2024 – Q4 2025
+Keywords: DevOps, Terraform, Kubernetes, Helm, Azure, ELK Stack, Elastic Search, Kibana, CI/CD, Observability, Logging, Game Development, ChatGPT, IaC, Docker
+The Build & Test Automation team at Paradox Interactive ensures game teams have the necessary infrastructure for testing and development. Carl-Oscar, in his role as a DevOps engineer, focuses on enhancing the team's centralized logging and monitoring capabilities using the ELK stack (Elasticsearch, Logstash, Kibana).
+By leveraging Terraform and Kubernetes on Azure, Carl-Oscar has successfully deployed ELK, guaranteeing scalability and ease of maintenance. His tasks include configuring ingestion pipelines, optimizing data retention, and creating observability dashboards. Through automation and solid practices, he has enhanced the reliability of log aggregation, enabling game teams to troubleshoot efficiently and gain valuable insights into their systems.
+In addition to his technical duties, Carl-Oscar collaborates closely with game teams to customize the solution according to their requirements. This ensures seamless adoption and efficient utilization of the logging platform.
+---
+Role: Tech Lead & Product Owner
+Company: Startup
+Time period: Q4 2024
+Keywords: RAG, LLM, CoPilot, ChatGPT, Vertex AI, GenAI, Typescript, Next.js, React, AWS SNS, AWS SQS, AWS Lambda, AWS CDK, Machine Learning, GCP
+A cutting-edge startup company is introducing the game-changing "Framework Agreement Machine," an AI-powered tool to streamline the framework agreement response process. The technology, which includes RAG (Retrieval-Augmented Generation) capabilities and advanced language models, efficiently matches consultant CVs and project references to client requirements, enhancing the speed and accuracy of the call-off process.
+Carl-Oscar serves as the product owner and tech lead for a startup seeking an AI software solution to excel in framework agreement bidding. The product's primary function is to swiftly generate customized reference case descriptions using a sophisticated language model, catering to specific requirements outlined by the client.
+In his role, Carl-Oscar oversees the product development, guiding a dedicated team of developers in creating the software from scratch. He also manages client interactions, ensuring that business needs are translated into actionable development tasks. Through close collaboration with the engineering team, Carl-Oscar ensures timely delivery of the product to meet client expectations.
+---
+Role: Technical lead - Restructuring product offering project
+Company: TV4 Media
+Time period: Q2 2024 – Q4 2024
+Node.js, Typescript, Integrations, Adyen, Payments, AWS, Terraform, Lambda, ECS, Grafana, Github Actions, JWT, OAuth
+To enhance the product offering of TV4 Play, the company has revamped its subscription plans, making them more personalized. This initiative involved modifying the internal product model, impacting the entire purchase process. Carl-Oscar has played a crucial role in developing and introducing the new product model. As the technical project lead, Carl-Oscar effectively coordinated with other teams, ensuring seamless communication and oversight of the project. Despite facing unexpected organizational changes and a challenging deadline, Carl-Oscar's leadership and dedication led to the successful release of the new subscription plans without major issues.
