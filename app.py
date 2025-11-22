@@ -318,15 +318,15 @@ def main():
 
         setup_scheduler()
 
-        # if Config.SOCKET_MODE:
-        #     # Socket Mode - recommended for local development
-        #     logger.info("Starting Hejbot in Socket Mode...")
-        #     handler = SocketModeHandler(app, Config.SLACK_APP_TOKEN)
-        #     handler.start()
-        # else:
-        #     # HTTP Mode - for production deployment
-        #     logger.info(f"Starting Hejbot in HTTP Mode on port {Config.PORT}...")
-        #     app.start(port=Config.PORT)
+        if Config.SOCKET_MODE:
+            # Socket Mode - recommended for local development
+            logger.info("Starting Hejbot in Socket Mode...")
+            handler = SocketModeHandler(app, Config.SLACK_APP_TOKEN)
+            handler.start()
+        else:
+            # HTTP Mode - for production deployment
+            logger.info(f"Starting Hejbot in HTTP Mode on port {Config.PORT}...")
+            app.start(port=Config.PORT)
     except Exception as e:
         logger.error(f"Error starting application: {e}")
         raise
