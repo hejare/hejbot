@@ -33,7 +33,7 @@ entries = [
 ]
 
 
-def random_timestamp(start_date: datetime):
+def random_timestamp():
     now = datetime.now()
     past_year = now - timedelta(days=365)
     delta = now - past_year
@@ -45,6 +45,10 @@ def seed_cv_entries():
     user_id = Config.SLACK_USER_ID
     records = [(user_id, entry, random_timestamp()) for entry in entries]
     records.sort(key=lambda x: x[2])
+
+    assignment_record = [
+        (user_id, "SVT", "Software Engineer", datetime.now() - timedelta(days=365))
+    ]
 
     conn = get_db_connection()
     try:
@@ -64,8 +68,8 @@ def seed_cv_entries():
             )
             execute_values(
                 cur,
-                "INSERT INTO assignments (user_id, text, timestamp) VALUES %s",
-                records,
+                "INSERT INTO assignments (user_id, company_name, role_name, timestamp_start) VALUES %s",
+                assignment_record,
             )
         conn.commit()
         logger.info(f"Inserted {len(records)} new CV entries for user {user_id}.")

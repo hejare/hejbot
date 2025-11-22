@@ -16,13 +16,15 @@ def setup_db():
                 user_id VARCHAR(255) NOT NULL,
                 text TEXT NOT NULL,
                 timestamp TIMESTAMP NOT NULL
-            )
+            );
             CREATE TABLE IF NOT EXISTS assignments (
                 id SERIAL PRIMARY KEY,
                 user_id VARCHAR(255) NOT NULL,
+                company_name VARCHAR(255) NOT NULL,
+                role_name VARCHAR(255) NOT NULL
                 timestamp_start TIMESTAMP NOT NULL,
                 timestamp_end TIMESTAMP
-            )
+            );
         """
         )
         conn.commit()
