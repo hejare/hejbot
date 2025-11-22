@@ -5,7 +5,8 @@ Built with Slack Bolt framework for Python
 
 from datetime import datetime
 import logging
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from config import Config
@@ -65,14 +66,11 @@ def handle_message_events(event, logger):
     logger.info(f"Message event: {event}")
 
     # Add CV entry to database
-    user_id = event.get("user")
-    text = event.get("text")
-    cv_entries = query(
-        "INSERT INTO cv_entries (user_id,text,timestamp) VALUES (?,?,?)",
-        (user_id, text, datetime.now()),
+    user_id = event.get('user')
+    text = event.get('text')
+    query("INSERT INTO cv_entries (user_id,text,timestamp) VALUES (%s,%s,%s)",
+        (user_id, text, datetime.now())
     )
-
-    logger.info(cv_entries)
 
 
 # ============================================================================
@@ -175,7 +173,7 @@ def handle_cv_command(ack, command, say, logger):
             (user_id,),
             fetch=True,
         )
-        input = f"Create a CV post based on the following entries: \n\n {"\n-----------\n".join([f"Text: {entry[1]} \n Timestamp: {entry[2]}" for entry in entries])}"
+        input = f"Create a CV post based on the following entries: \n\n {"\n-----------\n".join([f'Text: {entry["text"]} \n Timestamp: {entry["timestamp"]}' for entry in entries])}"
         response = client.responses.create(
             model="gpt-5-nano",
             input=input,
@@ -199,6 +197,27 @@ def query(query, parameters, fetch=False):
     con.commit()
     con.close()
     return results
+
+def get_db_connection():
+    """Get a PostgreSQL database connection."""
+    return psycopg2.connect(
+        host=Config.DB_HOST,
+        port=Config.DB_PORT,
+        database=Config.DB_DATABASE,
+        user=Config.DB_USERNAME,
+        password=Config.DB_PASSWORD,
+        sslmode=Config.DB_SSL_MODE
+    )
+
+def query(query_text, parameters):
+    """Execute a database query and return results."""
+    with get_db_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(query_text, parameters)
+            if query_text.strip().upper().startswith("SELECT"):
+                return cur.fetchall()
+            else:
+                return None
 
 
 # ============================================================================
@@ -251,11 +270,21 @@ def update_home_tab(client, event, logger):
 
 
 def setup_db():
-    con = sqlite3.connect("hejbot.db")
-    cur = con.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS cv_entries(user_id,text,timestamp)")
-    con.commit()
-    con.close()
+    """Initialize database schema."""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS cv_entries (
+                id SERIAL PRIMARY KEY,
+                user_id VARCHAR(255) NOT NULL,
+                text TEXT NOT NULL,
+                timestamp TIMESTAMP NOT NULL
+            )
+        """)
+        conn.commit()
+    finally:
+        conn.close()
 
 
 # ============================================================================

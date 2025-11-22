@@ -26,6 +26,14 @@ class Config:
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
     SOCKET_MODE = os.environ.get("SOCKET_MODE", "True").lower() == "true"
 
+    # Database Settings (PostgreSQL)
+    DB_HOST = os.environ.get("DB_HOST", "localhost")
+    DB_PORT = int(os.environ.get("DB_PORT", 5432))
+    DB_DATABASE = os.environ.get("DB_DATABASE", "hejbot")
+    DB_USERNAME = os.environ.get("DB_USERNAME", "postgres")
+    DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
+    DB_SSL_MODE = os.environ.get("DB_SSL_MODE", "prefer")
+
     @classmethod
     def validate(cls):
         """Validate that required configuration values are set."""

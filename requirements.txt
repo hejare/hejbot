@@ -4,6 +4,9 @@ slack-bolt>=1.18.0
 # Python dotenv for environment variable management
 python-dotenv>=1.0.0
 
+# PostgreSQL adapter for Python
+psycopg2-binary>=2.9.9
+
 # Optional: For async support (uncomment if needed)
 # aiohttp>=3.9.0
 
