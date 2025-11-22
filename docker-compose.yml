@@ -4,6 +4,8 @@ services:
   hejbot:
     build: .
     container_name: hejbot
+    depends_on:
+      - db
     restart: unless-stopped
     env_file:
       - .env
@@ -16,3 +18,18 @@ services:
       - PYTHONUNBUFFERED=1
     # Override command for development with auto-reload (optional)
     # command: python app.py
+  db:
+    image: postgres:14
+    container_name: hejbot_db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - hejbot_db_data:/var/lib/postgresql
+    environment:
+      - POSTGRES_USER=hejbot
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=hejbot
+      - PGGSSENCMODE=disable
+volumes:
+  hejbot_db_data:
