@@ -17,6 +17,12 @@ def setup_db():
                 text TEXT NOT NULL,
                 timestamp TIMESTAMP NOT NULL
             )
+            CREATE TABLE IF NOT EXISTS assignments (
+                id SERIAL PRIMARY KEY,
+                user_id VARCHAR(255) NOT NULL,
+                timestamp_start TIMESTAMP NOT NULL,
+                timestamp_end TIMESTAMP
+            )
         """
         )
         conn.commit()

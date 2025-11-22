@@ -210,6 +210,11 @@ def handle_cv_command(ack, command, say, logger):
         logger.info(f"Deleted entries for{user_id} ")
 
 
+@app.command("/assignment")
+def handle_assignment_command(ack, command, say, logger):
+    ack()
+
+
 # ============================================================================
 # Home Tab
 # ============================================================================

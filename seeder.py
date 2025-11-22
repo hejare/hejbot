@@ -33,7 +33,7 @@ entries = [
 ]
 
 
-def random_timestamp():
+def random_timestamp(start_date: datetime):
     now = datetime.now()
     past_year = now - timedelta(days=365)
     delta = now - past_year
@@ -50,13 +50,21 @@ def seed_cv_entries():
     try:
         with conn.cursor() as cur:
             cur.execute("DELETE FROM cv_entries WHERE user_id = %s", (user_id,))
-            logger.info(f"Deleted existing CV entries for user {user_id}.")
+            cur.execute("DELETE FROM assignments WHERE user_id = %s", (user_id,))
+            logger.info(
+                f"Deleted existing CV entries and assignments for user {user_id}."
+            )
 
             records = [(user_id, entry, random_timestamp()) for entry in entries]
             records.sort(key=lambda x: x[2])
             execute_values(
                 cur,
                 "INSERT INTO cv_entries (user_id, text, timestamp) VALUES %s",
+                records,
+            )
+            execute_values(
+                cur,
+                "INSERT INTO assignments (user_id, text, timestamp) VALUES %s",
                 records,
             )
         conn.commit()
