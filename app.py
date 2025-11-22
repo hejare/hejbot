@@ -164,7 +164,6 @@ def handle_demo_button_command(ack, command, say):
 
 @app.command("/cv")
 def handle_cv_command(ack, command, say, logger):
-    ack()
     if not command.get("text"):
         ack("Please provide a query text. Usage: /cv <your text>")
         return
@@ -172,14 +171,21 @@ def handle_cv_command(ack, command, say, logger):
     user_id = command.get("user_id")
 
     if text.lower() == "generate":
-        ack("Genererar din CV post...")
+        ack("Generating CV post...")
         logger.info("Generating CV...")
 
         user_info = app.client.users_info(user=user_id)
         first_name = user_info["user"]["profile"]["first_name"]
 
+        current_assignment_start = query(
+            "SELECT MAX(timestamp_start) FROM assignments WHERE user_id=%s AND timestamp_end IS NULL",
+            (user_id,),
+        )
+        logger(current_assignment_start)
+
         entries = query(
-            "SELECT user_id,text,timestamp FROM cv_entries WHERE user_id=%s", (user_id,)
+            "SELECT user_id,text,timestamp FROM cv_entries WHERE user_id=%s AND timestamp>=%s",
+            (user_id, current_assignment_start),
         )
         entries_text = "\n-----------\n".join(
             [
@@ -216,14 +222,100 @@ def handle_cv_command(ack, command, say, logger):
         say(text=response.output_text)
 
     if text.lower() == "delete":
-        ack("Raderar dina CV poster")
+        ack("Deleting your CV posts...")
         query("DELETE FROM cv_entries WHERE user_id=%s", (user_id,))
         logger.info(f"Deleted entries for{user_id} ")
 
 
 @app.command("/assignment")
 def handle_assignment_command(ack, command, say, logger):
-    ack()
+    text = command.get("text", "").strip()
+    user_id = command.get("user_id")
+
+    if not text:
+        say("Usage:\n• `/assignment <company> <role>`\n• `/assignment list`")
+        return
+
+    if text.lower() == "list":
+        ack("Fetching assignments...")
+        try:
+            assignments = query(
+                """
+                SELECT company_name, role_name, timestamp_start, timestamp_end
+                FROM assignments
+                WHERE user_id = %s
+                ORDER BY timestamp_start DESC
+                """,
+                (user_id,),
+            )
+
+            if not assignments:
+                say("You currently have no assignments saved.")
+                return
+
+            formatted = []
+            for a in assignments:
+                start = a["timestamp_start"].strftime("%Y-%m-%d")
+                end = (
+                    a["timestamp_end"].strftime("%Y-%m-%d")
+                    if a["timestamp_end"]
+                    else "present"
+                )
+                formatted.append(
+                    f"*{a['company_name']}* — {a['role_name']}\n`{start}` → `{end}`"
+                )
+
+            say("*Your Assignments:*\n\n" + "\n\n".join(formatted))
+
+        except Exception as e:
+            logger.error(f"Error listing assignments: {e}")
+            say("Could not retrieve assignments.")
+        return
+
+    parts = text.split(" ", 1)
+
+    if len(parts) != 2:
+        say(
+            "Please provide both a company and a role.\nExample:\n"
+            "`/assignment SVT Software Engineer`"
+        )
+        return
+
+    company_name, role_name = parts
+    timestamp_start = datetime.now()
+
+    try:
+        ack("Adding assignment...")
+        query(
+            """
+            UPDATE assignments SET timestamp_end=%s WHERE user_id=%s AND timestamp_end IS NULL
+            """,
+            (
+                timestamp_start,
+                user_id,
+            ),
+        )
+        query(
+            """
+            INSERT INTO assignments (user_id, company_name, role_name, timestamp_start)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (user_id, company_name, role_name, timestamp_start),
+        )
+
+        logger.info(
+            f"Inserted assignment for user {user_id}: {company_name}, {role_name}"
+        )
+
+        say(
+            f"Assignment added!\n"
+            f"• *Company:* {company_name}\n"
+            f"• *Role:* {role_name}"
+        )
+
+    except Exception as e:
+        logger.error(f"Error inserting assignment: {e}")
+        say("Could not save assignment.")
 
 
 # ============================================================================

@@ -53,8 +53,8 @@ def seed_cv_entries():
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("DELETE FROM cv_entries WHERE user_id = %s", (user_id,))
-            cur.execute("DELETE FROM assignments WHERE user_id = %s", (user_id,))
+            cur.execute("DELETE FROM cv_entries WHERE user_id = %s;", (user_id,))
+            cur.execute("DELETE FROM assignments WHERE user_id = %s;", (user_id,))
             logger.info(
                 f"Deleted existing CV entries and assignments for user {user_id}."
             )
@@ -63,16 +63,25 @@ def seed_cv_entries():
             records.sort(key=lambda x: x[2])
             execute_values(
                 cur,
-                "INSERT INTO cv_entries (user_id, text, timestamp) VALUES %s",
+                """
+                INSERT INTO cv_entries (user_id, text, timestamp)
+                VALUES %s
+                """,
                 records,
             )
+
             execute_values(
                 cur,
-                "INSERT INTO assignments (user_id, company_name, role_name, timestamp_start) VALUES %s",
+                """
+                INSERT INTO assignments (user_id, company_name, role_name, timestamp_start)
+                VALUES %s
+                """,
                 assignment_record,
             )
         conn.commit()
-        logger.info(f"Inserted {len(records)} new CV entries for user {user_id}.")
+        logger.info(
+            f"Inserted {len(records)} new CV entries and {len(assignment_record)} assignments for user {user_id}."
+        )
     finally:
         conn.close()
 
