@@ -166,6 +166,9 @@ docker-compose logs -f
 
 # Stop the bot
 docker-compose down
+
+# Seed CV entries
+docker-compose run --rm hejbot python seeder.py
 ```
 
 ### Production Deployment

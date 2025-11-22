@@ -5,12 +5,12 @@ Built with Slack Bolt framework for Python
 
 from datetime import datetime
 import logging
-import psycopg2
-from psycopg2.extras import RealDictCursor
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-from config import Config
 from openai import OpenAI
+
+from config import Config
+from db import setup_db, query
 
 client = OpenAI(api_key=Config.OPEN_AI_KEY)
 
@@ -66,10 +66,11 @@ def handle_message_events(event, logger):
     logger.info(f"Message event: {event}")
 
     # Add CV entry to database
-    user_id = event.get('user')
-    text = event.get('text')
-    query("INSERT INTO cv_entries (user_id,text,timestamp) VALUES (%s,%s,%s)",
-        (user_id, text, datetime.now())
+    user_id = event.get("user")
+    text = event.get("text")
+    query(
+        "INSERT INTO cv_entries (user_id,text,timestamp) VALUES (%s,%s,%s)",
+        (user_id, text, datetime.now()),
     )
 
 
@@ -159,6 +160,7 @@ def handle_demo_button_command(ack, command, say):
 
 @app.command("/cv")
 def handle_cv_command(ack, command, say, logger):
+    ack()
     if not command.get("text"):
         ack("Please provide a query text. Usage: /cv <your text>")
         return
@@ -168,56 +170,40 @@ def handle_cv_command(ack, command, say, logger):
     if text.lower() == "generate":
         ack("Genererar din CV post...")
         logger.info("Generating CV...")
+
+        user_info = app.client.users_info(user=user_id)
+        first_name = user_info["user"]["profile"]["first_name"]
+
         entries = query(
-            "SELECT user_id,text,timestamp FROM cv_entries WHERE user_id=?",
-            (user_id,),
-            fetch=True,
+            "SELECT user_id,text,timestamp FROM cv_entries WHERE user_id=%s", (user_id,)
         )
-        input = f"Create a CV post based on the following entries: \n\n {"\n-----------\n".join([f'Text: {entry["text"]} \n Timestamp: {entry["timestamp"]}' for entry in entries])}"
+        entries_text = "\n-----------\n".join(
+            [
+                f"Text: {entry['text']}\nTimestamp: {entry['timestamp']}"
+                for entry in entries
+            ]
+        )
+
+        input = (
+            f"Create a CV post for {first_name} based on the following entries:\n\n"
+            f"{entries_text}"
+        )
         response = client.responses.create(
             model="gpt-5-nano",
             input=input,
-            instructions="You are a senior salesperson at a consultancy company. Write in past tense, in third person. You will receive CV notes with timestamps",
+            instructions=(
+                "You are a senior salesperson at a consultancy company. "
+                "Write in past tense and in third person. Use the provided notes."
+                "Do not include timestamps in the CV post."
+                "Write a coherent text, not bullet points. The text should be maximum 10 lines."
+            ),
         )
         say(text=response.output_text)
 
     if text.lower() == "delete":
         ack("Raderar dina CV poster")
-        query("DELETE FROM cv_entries WHERE user_id=?", (user_id,))
+        query("DELETE FROM cv_entries WHERE user_id=%s", (user_id,))
         logger.info(f"Deleted entries for{user_id} ")
-
-
-def query(query, parameters, fetch=False):
-    con = sqlite3.connect("hejbot.db")
-    cur = con.cursor()
-    if fetch:
-        results = cur.execute(query, parameters).fetchall()
-    else:
-        results = cur.execute(query, parameters)
-    con.commit()
-    con.close()
-    return results
-
-def get_db_connection():
-    """Get a PostgreSQL database connection."""
-    return psycopg2.connect(
-        host=Config.DB_HOST,
-        port=Config.DB_PORT,
-        database=Config.DB_DATABASE,
-        user=Config.DB_USERNAME,
-        password=Config.DB_PASSWORD,
-        sslmode=Config.DB_SSL_MODE
-    )
-
-def query(query_text, parameters):
-    """Execute a database query and return results."""
-    with get_db_connection() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute(query_text, parameters)
-            if query_text.strip().upper().startswith("SELECT"):
-                return cur.fetchall()
-            else:
-                return None
 
 
 # ============================================================================
@@ -267,24 +253,6 @@ def update_home_tab(client, event, logger):
         )
     except Exception as e:
         logger.error(f"Error updating home tab: {e}")
-
-
-def setup_db():
-    """Initialize database schema."""
-    conn = get_db_connection()
-    try:
-        cur = conn.cursor()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS cv_entries (
-                id SERIAL PRIMARY KEY,
-                user_id VARCHAR(255) NOT NULL,
-                text TEXT NOT NULL,
-                timestamp TIMESTAMP NOT NULL
-            )
-        """)
-        conn.commit()
-    finally:
-        conn.close()
 
 
 # ============================================================================
