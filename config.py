@@ -17,6 +17,7 @@ class Config:
     SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
     SLACK_APP_TOKEN = os.environ.get("SLACK_APP_TOKEN")
     SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
+    SLACK_USER_ID = os.environ.get("SLACK_USER_ID")
 
     # Open AI Credentials
     OPEN_AI_KEY = os.environ.get("OPEN_AI_KEY")
