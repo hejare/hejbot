@@ -19,6 +19,17 @@ def setup_db():
             )
         """
         )
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS scheduled_posts (
+                id SERIAL PRIMARY KEY,
+                post_id VARCHAR(255) NOT NULL,
+                type VARCHAR(255) NOT NULL,
+                text TEXT NOT NULL,
+                added_by VARCHAR(255) NOT NULL
+            )
+        """
+        )
         conn.commit()
     finally:
         conn.close()
@@ -36,7 +47,7 @@ def get_db_connection():
     )
 
 
-def query(query_text, parameters):
+def query(query_text, parameters=()):
     """Execute a database query and return results."""
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:

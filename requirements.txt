@@ -15,6 +15,7 @@ openai
 
 # Schedule https://schedule.readthedocs.io/en/stable/index.html
 schedule
+pytz
 
 # Google
 google-api-python-client

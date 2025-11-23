@@ -26,6 +26,7 @@ class Config:
     PORT = int(os.environ.get("PORT", 3000))
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
     SOCKET_MODE = os.environ.get("SOCKET_MODE", "True").lower() == "true"
+    DEV = os.environ.get("DEV", "True").lower() == "true"
 
     # Database Settings (PostgreSQL)
     DB_HOST = os.environ.get("DB_HOST", "localhost")

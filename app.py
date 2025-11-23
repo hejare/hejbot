@@ -5,13 +5,17 @@ Built with Slack Bolt framework for Python
 
 from datetime import datetime
 import logging
-import sqlite3
+import uuid
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from openai import OpenAI
 
-from scheduler import Scheduler
-from google_api import GoogleApi
+from scheduler import (
+    PostTypes,
+    Scheduler,
+    consume_scheduled_post,
+    get_post_type_display_text,
+)
 
 from config import Config
 from db import setup_db, query, get_db_connection
@@ -27,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 # Initialize the Slack app
 app = App(token=Config.SLACK_BOT_TOKEN, signing_secret=Config.SLACK_SIGNING_SECRET)
+
+command_prefix = "dev-" if Config.DEV else ""
 
 # ============================================================================
 # Event Listeners
@@ -162,7 +168,7 @@ def handle_demo_button_command(ack, command, say):
     )
 
 
-@app.command("/cv")
+@app.command(f"/{command_prefix}cv")
 def handle_cv_command(ack, command, say, logger):
     ack()
     if not command.get("text"):
@@ -221,6 +227,114 @@ def handle_cv_command(ack, command, say, logger):
         logger.info(f"Deleted entries for{user_id} ")
 
 
+@app.command(f"/{command_prefix}admin")
+def handle_admin_command(ack, command, say):
+    ack()
+    text = command.get("text").lower()
+
+    if text == "list posts":
+        posts = query(
+            "SELECT post_id,type,text,added_by FROM scheduled_posts LIMIT 999"
+        )
+
+        if len(posts) == 0:
+            say("Det finns inga schemalagda poster")
+            return
+
+        say(
+            text="Schemalagda poster:",
+            attachments=[
+                {
+                    "fallback": post["text"],
+                    "blocks": [
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": post["text"],
+                            },
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "mrkdwn",
+                                    "text": f"Skapad av: <@{post['added_by']}>\nTidpunkt: {get_post_type_display_text(PostTypes[post['type']])}\nId: {post['post_id']}",
+                                }
+                            ],
+                        },
+                    ],
+                }
+                for post in posts
+            ],
+        )
+        return
+    elif text == "create post":
+        app.client.views_open(
+            trigger_id=command.get("trigger_id"),
+            view={
+                "type": "modal",
+                "callback_id": "create_post_dialog",
+                "title": {"type": "plain_text", "text": "Skapa en ny post"},
+                "submit": {"type": "plain_text", "text": "Skapa"},
+                "blocks": [
+                    {
+                        "type": "input",
+                        "block_id": "text_block",
+                        "element": {
+                            "type": "plain_text_input",
+                            "action_id": "text",
+                            "multiline": True,
+                        },
+                        "label": {"type": "plain_text", "text": "Meddelande"},
+                    },
+                    {
+                        "type": "input",
+                        "block_id": "type_block",
+                        "element": {
+                            "type": "static_select",
+                            "action_id": "type",
+                            "options": [
+                                {
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": get_post_type_display_text(post_type),
+                                    },
+                                    "value": post_type.value,
+                                }
+                                for post_type in PostTypes
+                            ],
+                        },
+                        "label": {"type": "plain_text", "text": "Tidpunkt"},
+                    },
+                ],
+            },
+        )
+        return
+    elif text.startswith("delete post"):
+        try:
+            [_, post_id] = text.split("delete post ")
+
+            consume_scheduled_post(post_id)
+        except Exception:
+            say("Ogiltigt post-id")
+        return
+
+
+@app.view("create_post_dialog")
+def handle_modal_submission(ack, body, logger):
+    ack()
+    user = body["user"]
+    state = body["view"]["state"]["values"]
+    text = state["text_block"]["text"]["value"]
+    post_type = state["type_block"]["type"]["selected_option"]["value"]
+
+    query(
+        "INSERT INTO scheduled_posts (post_id,type,text,added_by) VALUES (%s,%s,%s,%s)",
+        (str(uuid.uuid4()), post_type, text, user["id"]),
+    )
+
+
 # ============================================================================
 # Home Tab
 # ============================================================================
@@ -246,23 +360,11 @@ def update_home_tab(client, event, logger):
                 "blocks": [
                     {
                         "type": "section",
-                        "text": {"type": "mrkdwn", "text": "*Welcome to Hejbot! 👋*"},
-                    },
-                    {
-                        "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "This is your App Home. You can customize this view to show useful information.",
+                            "text": "Hej hej! Jag är HejBot :hej: :robot_face:\n\nJag kommer hjälpa dig med lite smått o gott. Mer info kommer! :star-struck:\n\nOm du är nyfiken kan du prata med @jennifer, @malin, @ellen, @kevin eller @john .",
                         },
-                    },
-                    {"type": "divider"},
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "*Available Commands:*\n• `/hello` - Get a greeting\n• `/demo-button` - See an interactive button demo",
-                        },
-                    },
+                    }
                 ],
             },
         )
@@ -280,7 +382,7 @@ def main():
     try:
         setup_db()
 
-        scheduler = Scheduler(logger)
+        scheduler = Scheduler(logger=logger, app=app)
         scheduler.start()
 
         # google_api = GoogleApi(logger)
