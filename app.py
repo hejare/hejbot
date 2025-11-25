@@ -10,7 +10,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from openai import OpenAI
 
-from scheduler import (
+from scheduler.scheduler import (
     PostTypes,
     Scheduler,
     consume_scheduled_post,
@@ -18,7 +18,7 @@ from scheduler import (
 )
 
 from config import Config
-from db import setup_db, query, get_db_connection
+from db import setup_db, query
 
 client = OpenAI(api_key=Config.OPEN_AI_KEY)
 
