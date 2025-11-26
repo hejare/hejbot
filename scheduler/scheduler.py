@@ -48,6 +48,7 @@ class Scheduler:
     def event_friday_morning(self):
         self._send_scheduled_post(PostTypes.FridayMorning)
 
+    def event_morning_check_in(self):
         if is_last_day_of_month():
             self._send_message(**get_register_time_message())
 
@@ -56,8 +57,12 @@ class Scheduler:
             self.event_monday_morning
         )
 
-        schedule.every().friday.at("08:30", "Europe/Stockholm").do(
+        schedule.every().friday.at("09:00", "Europe/Stockholm").do(
             self.event_friday_morning
+        )
+
+        schedule.every().day.at("08:30", "Europe/Stockholm").do(
+            self.event_morning_check_in
         )
 
         p = Process(target=self.run)
