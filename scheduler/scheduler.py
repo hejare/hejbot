@@ -49,8 +49,9 @@ class Scheduler:
         self._send_scheduled_post(PostTypes.FridayMorning)
 
     def event_morning_check_in(self):
-        if is_last_day_of_month():
-            self._send_message(**get_register_time_message())
+        #if is_last_day_of_month():
+        #    self._send_message(**get_register_time_message())
+        pass
 
     def start(self):
         schedule.every().monday.at("09:00", "Europe/Stockholm").do(
